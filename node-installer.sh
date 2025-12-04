@@ -90,7 +90,7 @@ install_component() {
     fi
 
     # Removes any RC version from the URL
-    local sanitized_version="${version%-rc.*}" 
+    local sanitized_version="${version%-rc.*}"
     # Construct the download URL
     local url="https://github.com/dusk-network/rusk/releases/download/${release_tag}-${version}/${component}-${sanitized_version}-linux-${arch}${feature_suffix}.tar.gz"
 
@@ -161,35 +161,18 @@ echo "Downloading installer package for additional scripts and configurations"
 curl -so /opt/dusk/installer/installer.tar.gz -L "$INSTALLER_URL"
 tar xf /opt/dusk/installer/installer.tar.gz --strip-components 1 --directory /opt/dusk/installer
 
-# Detect and source OS logic
-if [ -f /etc/os-release ]; then
-    . /etc/os-release
-    distro=$(echo "$ID" | tr '[:upper:]' '[:lower:]')
-else
-    echo "Unable to detect OS. /etc/os-release not found."
-    exit 1
-fi
-
-# Normalize distro ID for compatible derivatives
-case "$distro" in
-    linuxmint*) distro="ubuntu" ;;
-esac
-
-echo "Detected OS ID: $ID"
-echo "Normalized OS target: $distro"
-
-OS_SCRIPT="/opt/dusk/installer/os/$distro.sh"
+# Use the Docker-compatible ubuntu.sh script
+OS_SCRIPT="/opt/dusk/installer/os/ubuntu.sh"
 if [ -f "$OS_SCRIPT" ]; then
     echo "Using OS support script: $OS_SCRIPT"
     source "$OS_SCRIPT"
 else
-    echo "No support script found for '$distro'"
-    echo "Want to add support? See: https://github.com/dusk-network/node-installer#contributing-os-support"
+    echo "No support script found for 'ubuntu'"
     exit 1
 fi
 
 echo "Update package db and install prerequisites."
-install_deps
+install_deps # from ubuntu.sh
 
 # Ensure dusk group and user exist
 if ! id -u dusk >/dev/null 2>&1; then
@@ -222,6 +205,7 @@ mv -n /opt/dusk/installer/services/* /opt/dusk/services/
 install_component "$NETWORK" "rusk"
 mv /opt/dusk/installer/rusk/rusk /opt/dusk/bin/
 
+### could opt this out, if we want to use multisig
 # Download, unpack and install Rusk wallet
 install_component "$NETWORK" "rusk-wallet"
 mv /opt/dusk/installer/rusk-wallet/rusk-wallet /opt/dusk/bin/
