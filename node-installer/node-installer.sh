@@ -1,8 +1,9 @@
 #!/bin/bash
 
 # Detect the user running the script
-CURRENT_USER=$(logname)
-CURRENT_HOME=$(eval echo ~"$CURRENT_USER")
+# In Docker, logname may not work, so use env var or default to dusk
+CURRENT_USER="${DUSK_USER:-dusk}"
+CURRENT_HOME="/home/${CURRENT_USER}"
 echo "Detected current user: $CURRENT_USER"
 echo "Home directory: $CURRENT_HOME"
 

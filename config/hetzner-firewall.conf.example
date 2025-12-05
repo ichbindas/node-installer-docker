@@ -1,0 +1,20 @@
+# Hetzner Robot Firewall Configuration
+# Copy this file to hetzner-firewall.conf and modify as needed
+# The hetzner-firewall-setup.sh script can use this file
+
+# Hetzner Robot API Credentials
+# Get these from: https://robot.your-server.de/preferences
+#ROBOT_USER="#ws+YOUR_USERNAME"
+#ROBOT_PASS="YOUR_PASSWORD"
+
+# Server IP (the Node VPS IP address to configure firewall for)
+#SERVER_IP="123.45.67.89"
+
+# Your Home/Office IP (for SSH access)
+# Leave empty to auto-detect, or set to 0.0.0.0/0 for unrestricted (NOT recommended)
+#YOUR_IP="123.45.67.89"
+
+# Web VPS IP (for SSH tunnel access, optional)
+# If you plan to use SSH tunneling from a Web VPS for monitoring dashboard
+#WEB_VPS_IP="123.45.67.89"
+

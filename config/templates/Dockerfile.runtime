@@ -1,0 +1,43 @@
+# Dockerfile for running Dusk Rusk node
+# Uses pre-built binary from node-installer.sh
+
+ARG BASE_IMAGE=ubuntu:24.04
+FROM ${BASE_IMAGE}
+
+# Environment variables
+ENV DUSK_USER=dusk \
+    DUSK_NETWORK=mainnet
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create dusk user and group
+RUN groupadd --system dusk && \
+    useradd --system --create-home --shell /usr/sbin/nologin --gid dusk dusk
+
+# Create required directories
+RUN mkdir -p /opt/dusk/bin \
+    /opt/dusk/conf \
+    /opt/dusk/rusk \
+    /opt/dusk/services \
+    && chown -R dusk:dusk /opt/dusk
+
+# Copy installer scripts
+COPY node-installer-docker/node-installer.sh /tmp/
+COPY config/templates/docker-install-wrapper.sh /tmp/
+RUN chmod +x /tmp/node-installer.sh /tmp/docker-install-wrapper.sh
+
+# Copy entrypoint
+COPY config/templates/docker-entrypoint.sh /
+RUN chmod +x /docker-entrypoint.sh
+
+# Expose ports (will be mapped to host in docker-compose)
+EXPOSE 8000 9000
+
+# Run as root (entrypoint handles switching to dusk)
+ENTRYPOINT ["/docker-entrypoint.sh"]
+
