@@ -1,0 +1,14 @@
+---
+base_image: "ubuntu:24.04"
+dockerfile_path: "config/templates/Dockerfile.runtime"
+volume_prefix: "dusk-node"
+base_p2p_port: 8000
+base_rpc_port: 9000
+dusk_sysctls:
+  - "net.core.rmem_max=50000000"
+  - "net.core.rmem_default=20000000"
+  - "net.ipv4.udp_mem=262144 327680 393216"
+  - "net.ipv4.udp_rmem_min=4096"
+  - "net.core.netdev_max_backlog=2000"
+  - "net.core.wmem_default=20000000"
+  - "net.core.wmem_max=50000000"

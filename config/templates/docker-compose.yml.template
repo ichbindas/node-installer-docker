@@ -1,25 +1,22 @@
 version: '3.8'
-
-# Docker Compose configuration for Dusk nodes
-# Multiple nodes with unique port mappings
-# Node ports: 8000 (P2P), 9000 (RPC)
-# Host mapping: node-i uses port (8000+i) and (9000+i)
+# Docker Compose configuration for a single Dusk node
+# To add more nodes, duplicate the 'dusk-node' service and update the port mappings and volume names
 
 services:
-  dusk-node-1:
+  dusk-node:
     build:
       context: .
       dockerfile: config/templates/Dockerfile.runtime
       args:
         BASE_IMAGE: ubuntu:24.04
-    container_name: dusk-node-1
+    container_name: dusk-node
     restart: unless-stopped
     ports:
-      - "8001:8000"   # Node 1: P2P at host:8001
-      - "9001:9000"   # Node 1: RPC at host:9001
+      - "8001:8000"   # P2P port mapping
+      - "9001:9000"   # RPC port mapping
     volumes:
-      - dusk-node-1-data:/home/dusk/.dusk
-      - dusk-node-1-rusk:/opt/dusk/rusk
+      - dusk-node-data:/home/dusk/.dusk
+      - dusk-node-rusk:/opt/dusk/rusk
     environment:
       - DUSK_NETWORK=mainnet
       - DUSK_FEATURE=default
@@ -33,81 +30,7 @@ services:
       - net.core.netdev_max_backlog=2000
       - net.core.wmem_default=20000000
       - net.core.wmem_max=50000000
-    networks:
-      - dusk-network
-
-  dusk-node-2:
-    build:
-      context: .
-      dockerfile: config/templates/Dockerfile.runtime
-      args:
-        BASE_IMAGE: ubuntu:24.04
-    container_name: dusk-node-2
-    restart: unless-stopped
-    ports:
-      - "8002:8000"   # Node 2: P2P at host:8002
-      - "9002:9000"   # Node 2: RPC at host:9002
-    volumes:
-      - dusk-node-2-data:/home/dusk/.dusk
-      - dusk-node-2-rusk:/opt/dusk/rusk
-    environment:
-      - DUSK_NETWORK=mainnet
-      - DUSK_FEATURE=default
-      - DUSK_USER=dusk
-      - RUST_LOG=info
-    sysctls:
-      - net.core.rmem_max=50000000
-      - net.core.rmem_default=20000000
-      - net.ipv4.udp_mem=262144 327680 393216
-      - net.ipv4.udp_rmem_min=4096
-      - net.core.netdev_max_backlog=2000
-      - net.core.wmem_default=20000000
-      - net.core.wmem_max=50000000
-    networks:
-      - dusk-network
-    depends_on:
-      - dusk-node-1
-
-  dusk-node-3:
-    build:
-      context: .
-      dockerfile: config/templates/Dockerfile.runtime
-      args:
-        BASE_IMAGE: ubuntu:24.04
-    container_name: dusk-node-3
-    restart: unless-stopped
-    ports:
-      - "8003:8000"   # Node 3: P2P at host:8003
-      - "9003:9000"   # Node 3: RPC at host:9003
-    volumes:
-      - dusk-node-3-data:/home/dusk/.dusk
-      - dusk-node-3-rusk:/opt/dusk/rusk
-    environment:
-      - DUSK_NETWORK=mainnet
-      - DUSK_FEATURE=default
-      - DUSK_USER=dusk
-      - RUST_LOG=info
-    sysctls:
-      - net.core.rmem_max=50000000
-      - net.core.rmem_default=20000000
-      - net.ipv4.udp_mem=262144 327680 393216
-      - net.ipv4.udp_rmem_min=4096
-      - net.core.netdev_max_backlog=2000
-      - net.core.wmem_default=20000000
-      - net.core.wmem_max=50000000
-    networks:
-      - dusk-network
-    depends_on:
-      - dusk-node-1
 
 volumes:
-  dusk-node-1-data:
-  dusk-node-1-rusk:
-  dusk-node-2-data:
-  dusk-node-2-rusk:
-  dusk-node-3-data:
-  dusk-node-3-rusk:
-
-networks:
-  dusk-network:
-    driver: bridge
+  dusk-node-data:
+  dusk-node-rusk:
