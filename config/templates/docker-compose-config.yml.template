@@ -1,6 +1,6 @@
 ---
 base_image: "ubuntu:24.04"
-dockerfile_path: "config/templates/Dockerfile.runtime"
+dockerfile_path: "config/Dockerfile.runtime"
 volume_prefix: "dusk-node"
 base_p2p_port: 8000
 base_rpc_port: 9000

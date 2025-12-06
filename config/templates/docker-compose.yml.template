@@ -6,7 +6,7 @@ services:
   dusk-node:
     build:
       context: .
-      dockerfile: config/templates/Dockerfile.runtime
+      dockerfile: config/Dockerfile.runtime
       args:
         BASE_IMAGE: ubuntu:24.04
     container_name: dusk-node

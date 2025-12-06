@@ -27,17 +27,17 @@ RUN mkdir -p /opt/dusk/bin \
     && chown -R dusk:dusk /opt/dusk
 
 # Copy installer scripts
-COPY node-installer-docker/node-installer.sh /tmp/
-COPY config/templates/docker-install-wrapper.sh /tmp/
+COPY node-installer/node-installer.sh /tmp/
+COPY config/src/docker-install-wrapper.sh /tmp/
 RUN chmod +x /tmp/node-installer.sh /tmp/docker-install-wrapper.sh
 
 # Copy entrypoint
-COPY config/templates/docker-entrypoint.sh /
+COPY config/src/docker-entrypoint.sh /
 RUN chmod +x /docker-entrypoint.sh
 
 # Expose ports (will be mapped to host in docker-compose)
 EXPOSE 8000 9000
 
 # Run as root (entrypoint handles switching to dusk)
-ENTRYPOINT ["/docker-entrypoint.sh"]
+ENTRYPOINT ["config/src/docker-entrypoint.sh"]
 
