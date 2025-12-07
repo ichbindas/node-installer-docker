@@ -1,6 +1,6 @@
 # Directory Overview
 
-## Environment files (config/)
+## Example Environment and Configuration files (config/examples)
 Copy `cp` example `.env` files into `/config` and edit them.
 
 [dusk.env.example](../config/examples/dusk.env.example): Contains environment variables for the Dusk application, including database connection details, API keys, and other configuration settings.
