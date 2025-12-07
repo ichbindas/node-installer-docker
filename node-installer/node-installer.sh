@@ -215,6 +215,11 @@ ln -sf /opt/dusk/bin/ruskreset /usr/bin/ruskreset
 ln -sf /opt/dusk/bin/rusk-wallet /usr/bin/rusk-wallet
 if [ "$NETWORK" == "mainnet" ]; then
     ln -sf /opt/dusk/bin/download_state.sh /usr/bin/download_state
+    # Call download_state.sh
+    echo "Starting state download..."
+    if ! /usr/bin/download_state; then
+        echo "Warning: State download failed. Continuing with installation..."
+    fi
 fi
 
 echo "Selected network: $NETWORK"
@@ -241,6 +246,8 @@ configure_logrotate
 # Enable the Rusk service
 systemctl enable rusk
 systemctl daemon-reload
+
+systemctl 
 
 # Display final instructions
 cat /opt/dusk/installer/assets/finish.msg

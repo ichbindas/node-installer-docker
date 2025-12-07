@@ -13,7 +13,6 @@ SCRIPT_VERSION="1.0.0"
 
 PHASES=(
     "01-docker-setup"
-    "03-fast-sync"
 )
 
 # ConfigurationI 
