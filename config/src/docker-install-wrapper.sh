@@ -25,4 +25,3 @@ chmod +x /tmp/node-installer-docker.sh
 /tmp/node-installer-docker.sh "$@"
 
 echo "Installer completed successfully!"
-

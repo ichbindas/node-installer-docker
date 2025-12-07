@@ -39,5 +39,5 @@ RUN chmod +x /docker-entrypoint.sh
 EXPOSE 8000 9000
 
 # Run as root (entrypoint handles switching to dusk)
-ENTRYPOINT ["config/src/docker-entrypoint.sh"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
 

@@ -1,2 +1,3 @@
+# replaced by default.config.toml
 state = "http://127.0.0.1:8080"
-prover = "https://testnet.provers.dusk.network"
+prover = "https://provers.dusk.network"

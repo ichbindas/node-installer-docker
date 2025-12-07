@@ -2,8 +2,8 @@
 base_image: "ubuntu:24.04"
 dockerfile_path: "config/Dockerfile.runtime"
 volume_prefix: "dusk-node"
-base_p2p_port: 8000
-base_rpc_port: 9000
+base_p2p_port: 18080
+base_rpc_port: 19000
 dusk_sysctls:
   - "net.core.rmem_max=50000000"
   - "net.core.rmem_default=20000000"
@@ -12,3 +12,7 @@ dusk_sysctls:
   - "net.core.netdev_max_backlog=2000"
   - "net.core.wmem_default=20000000"
   - "net.core.wmem_max=50000000"
+# Resource limits
+cpu_limit: 2.0
+memory_limit: 4G
+storage_limit: 50G

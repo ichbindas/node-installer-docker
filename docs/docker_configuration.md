@@ -12,7 +12,7 @@ This repository contains the necessary files to set up and manage Dusk nodes usi
 
 ### Using the Template
 
-1. Copy the `docker-compose.yml.template` file to `docker-compose.yml`: `cp config/templates/docker-compose-config.yml.template config/docker-compose-config.yml`
+1. Copy the `docker-compose.yml.template` file to `config/docker-compose.yml`: `cp config/templates/docker-compose-config.yml.template config/docker-compose-config.yml`
 2. Modify the file to suit your needs. You can add more nodes by duplicating the `dusk-node` service and updating the port mappings and volume names.
 3. Start the Dusk nodes using Docker Compose:
    ```bash

@@ -1,6 +1,8 @@
 *.env
-/config/hetzner-firewall.conf
-scripts
 docker-compose.yml
 docker-compose-config.yml
-.continue/
+.continue
+
+/scripts/hetzner-firewall-setup.sh
+/scripts/security-setup.sh
+/scripts/old-main-installer.sh

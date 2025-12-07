@@ -116,14 +116,12 @@ configure_network() {
             mv /opt/dusk/conf/mainnet.toml /opt/dusk/conf/rusk.toml
             rm /opt/dusk/conf/testnet.genesis
             rm /opt/dusk/conf/testnet.toml
-            prover_url="https://provers.dusk.network"
             ;;
         testnet)
             mv /opt/dusk/conf/testnet.genesis /opt/dusk/conf/genesis.toml
             mv /opt/dusk/conf/testnet.toml /opt/dusk/conf/rusk.toml
             rm /opt/dusk/conf/mainnet.genesis
             rm /opt/dusk/conf/mainnet.toml
-            prover_url="https://testnet.provers.dusk.network"
             ;;
         *)
             echo "Unknown network: $network. Defaulting to mainnet."
@@ -132,8 +130,6 @@ configure_network() {
             ;;
     esac
 
-    # Update the wallet.toml with the appropriate prover URL for the given network
-    sed -i "s|^prover = .*|prover = \"$prover_url\"|" $CURRENT_HOME/.dusk/rusk-wallet/config.toml
 }
 
 # Check for OpenSSL 3 or higher
@@ -206,11 +202,11 @@ mv -n /opt/dusk/installer/services/* /opt/dusk/services/
 install_component "$NETWORK" "rusk"
 mv /opt/dusk/installer/rusk/rusk /opt/dusk/bin/
 
-### could opt this out, if we want to use multisig
+### could opt this out, if we want to use multisig 
 # Download, unpack and install Rusk wallet
 install_component "$NETWORK" "rusk-wallet"
 mv /opt/dusk/installer/rusk-wallet/rusk-wallet /opt/dusk/bin/
-mv -f /opt/dusk/conf/wallet.toml $CURRENT_HOME/.dusk/rusk-wallet/config.toml
+mv -f /opt/dusk/conf/default.config.toml $CURRENT_HOME/.dusk/rusk-wallet/config.toml
 
 # Symlink to make available system-wide
 ln -sf /opt/dusk/bin/rusk /usr/bin/rusk
