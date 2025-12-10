@@ -31,6 +31,10 @@ services:
       - net.core.netdev_max_backlog=2000
       - net.core.wmem_default=20000000
       - net.core.wmem_max=50000000
+    # Resource limits
+    cpu_limit: 1.0
+    memory_limit: 2G
+    storage_limit: 20G
 
   # Node 2 configuration
   dusk-node-2:
@@ -60,6 +64,9 @@ services:
       - net.core.netdev_max_backlog=2000
       - net.core.wmem_default=20000000
       - net.core.wmem_max=50000000
+      cpu_limit: 1.0
+      memory_limit: 2G
+      storage_limit: 20G
 
 volumes:
   dusk-node-1-data:
