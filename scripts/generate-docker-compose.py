@@ -93,8 +93,8 @@ def generate_compose(num_nodes, config, network="mainnet", feature="default"):
                 f"{host_rpc}:9000"   # RPC
             ],
             'volumes': [
-                f"{node_name}-data:/home/dusk/.dusk",
-                f"{node_name}-rusk:/opt/dusk/rusk"
+                f"{node_name}-data:/home/dusk/nodes/node-{i}/.dusk",
+                f"{node_name}-rusk:/opt/dusk/nodes/node-{i}/rusk"
             ],
             'environment': [
                 f"DUSK_NETWORK={network}",

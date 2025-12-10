@@ -42,7 +42,7 @@ done
 
 # Load configuration from .env file if available
 if [[ -f "$CONFIG_DIR/dusk.env" ]]; then
-  log_info "📋 Loading configuration from dusk.env"
+  echo "📋 Loading configuration from dusk.env"
   source "$CONFIG_DIR/dusk.env"
 fi
 
@@ -70,17 +70,12 @@ export_config_vars
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --verbose)
-      VERBOSE=true
-      LOG_LEVEL=$LOG_LEVEL_DEBUG
-      shift
-      ;;
     --add-nodes)
       if [[ -n "$2" && "$2" =~ ^[0-9]+$ ]]; then
         ADD_NODES="$2"
         shift 2
       else
-        log_error "--add-nodes requires a number"
+        echo "--add-nodes requires a number"
         show_help
         exit 1
       fi
@@ -94,7 +89,7 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     *)
-      log_error "Unknown option: $1"
+      echo "Unknown option: $1"
       show_help
       exit 1
       ;;
@@ -116,7 +111,6 @@ Options:
 --fast-sync        Enable fast-sync during installation
 --list-containers  List existing containers
 --skip-validation  Skip pre-installation validation
---verbose          Enable verbose logging
 --help, -h         Show this help message
 
 Installation Phases:
@@ -131,7 +125,6 @@ sudo $0 --fast-sync         # Install with fast-sync
 sudo $0 --skip-validation  # Skip pre-installation checks (use with caution)
 sudo $0 --add-nodes 2       # Add 2 more containers to existing setup
 sudo $0 --list-containers   # List existing containers
-sudo $0 --verbose           # Verbose logging
 EOF
 }
 
@@ -141,12 +134,12 @@ check_module_exists() {
   local module_path="$MODULES_DIR/$module_name.sh"
 
   if [[ -f "$module_path" ]]; then
-    log_debug "Module found: $module_name at $module_path"
+    echo "Module found: $module_name at $module_path"
     return 0
   else
-    log_error "Module not found: $module_name"
-    log_error "Expected location: $module_path"
-    log_error "Please ensure all required modules are present in $MODULES_DIR"
+    echo "Module not found: $module_name"
+    echo "Expected location: $module_path"
+    echo "Please ensure all required modules are present in $MODULES_DIR"
     return 1
   fi
 }
@@ -160,55 +153,55 @@ execute_module() {
   local end_time
   local duration
 
-  log_section_start "Module: $module_name"
+  echo "Module: $module_name"
 
   # Check if module exists
   if ! check_module_exists "$module_name"; then
-    log_section_end "Module: $module_name" "ERROR"
+    echo "Module: $module_name" "ERROR"
     return 1
   fi
 
   # Skip fast-sync if not enabled
   if [["$FAST_SYNC_ENABLED" != "true" ]]; then
-    log_section_end"ℹ️ Skipping fast-sync (not enabled)"
+    echo"ℹ️ Skipping fast-sync (not enabled)"
     return 0
   fi
 
   start_time=$(date +%s)
-  log_info "🚀 Starting module: $module_name"
+  echo "🚀 Starting module: $module_name"
 
   # Execute module with timeout
   if timeout "$timeout" bash "$module_path"; then
     end_time=$(date +%s)
     duration=$((end_time - start_time))
-    log_info "Module $module_name completed successfully in $duration seconds"
-    log_section_end "Module: $module_name" "SUCCESS"
+    echo "Module $module_name completed successfully in $duration seconds"
+    echo "Module: $module_name" "SUCCESS"
     return 0
   else
     end_time=$(date +%s)
     duration=$((end_time - start_time))
-    log_error "Module $module_name failed after $duration seconds"
-    log_section_end "Module: $module_name" "ERROR"
+    echo "Module $module_name failed after $duration seconds"
+    echo "Module: $module_name" "ERROR"
     return 1
-    fi
   fi
+  
 }
 
 # Enhanced rollback function
 rollback_installation() {
   local failed_module=$1
-  log_error "🔄 Rolling back installation due to failure in module: $failed_module"
+  echo "🔄 Rolling back installation due to failure in module: $failed_module"
 
   # Stop Docker containers
   if [[ -f "/opt/dusk/docker-compose.yml" ]]; then
-    log_info "Stopping Docker containers"
+    echo "Stopping Docker containers"
     cd /opt/dusk 2>/dev/null || true
 
     if command -v docker-compose >/dev/null 2>&1; then
-      log_info "🔧 Running: docker-compose down"
+      echo "🔧 Running: docker-compose down"
       docker-compose down 2>/dev/null || true
     elif docker compose version >/dev/null 2>&1; then
-      log_info "🔧 Running: docker compose down"
+      echo "🔧 Running: docker compose down"
       docker compose down 2>/dev/null || true
     fi
   fi
@@ -216,20 +209,20 @@ rollback_installation() {
   # Remove created directories if they're empty
   if [[ -d "$DUSK_BASE_DIR" ]]; then
     if [[ -z "$(ls -A "$DUSK_BASE_DIR")" ]]; then
-      log_info "🗑️ Removing empty installation directory: $DUSK_BASE_DIR"
+      echo "🗑️ Removing empty installation directory: $DUSK_BASE_DIR"
       rmdir "$DUSK_BASE_DIR" 2>/dev/null || true
     else
-      log_info "ℹ️ Keeping non-empty installation directory: $DUSK_BASE_DIR"
+      echo "ℹ️ Keeping non-empty installation directory: $DUSK_BASE_DIR"
     fi
   fi
 
-  log_error "🔄 Rollback completed. Manual cleanup may be required for non-empty directories."
+  echo "🔄 Rollback completed. Manual cleanup may be required for non-empty directories."
 }
 
 
 # Enhanced container listing with filtering options
 list_containers() {
-  log_info "📋 Listing existing Dusk node containers..."
+  echo "📋 Listing existing Dusk node containers..."
 
   local compose_cmd
   local filter_status=""
@@ -241,7 +234,7 @@ list_containers() {
   elif docker compose version >/dev/null 2>&1; then
     compose_cmd="docker compose"
   else
-    log_error "Docker Compose not found"
+    echo "Docker Compose not found"
     return 1
   fi
 
@@ -253,7 +246,7 @@ list_containers() {
     $compose_cmd -f /opt/dusk/docker-compose.yml ps
     echo ""
   else
-    log_info "ℹ️ No docker-compose.yml found"
+    echo "ℹ️ No docker-compose.yml found"
   fi
 
   # Show Docker containers with enhanced formatting
@@ -269,7 +262,7 @@ list_containers() {
 validate_network() {
   # Validate network
   if [[ "$NETWORK" != "mainnet" && "$NETWORK" != "testnet" ]]; then
-    log_error "Invalid network specified: $NETWORK. Must be 'mainnet' or 'testnet'"
+    echo "Invalid network specified: $NETWORK. Must be 'mainnet' or 'testnet'"
     return 1
   fi
 
@@ -287,12 +280,12 @@ check_disk_space() {
   local available_space_gb=$(df -BG / | awk 'NR==2 {print $4}' | tr -d 'G')
 
   if [[ "$available_space_gb" -lt "$total_required_gb" ]]; then
-    log_error "Insufficient disk space"
-    log_error "Required: ${total_required_gb}GB, Available: ${available_space_gb}GB"
+    echo "Insufficient disk space"
+    echo "Required: ${total_required_gb}GB, Available: ${available_space_gb}GB"
     return 1
   fi
 
-  log_info "Disk space check passed (${available_space_gb}GB available)"
+  echo "Disk space check passed (${available_space_gb}GB available)"
   return 0
 }
 
@@ -307,12 +300,12 @@ check_memory_requirements() {
   local available_mem_mb=$(free -m | awk '/Mem:/ {print $7}')
 
   if [[ "$available_mem_mb" -lt "$total_required_mb" ]]; then
-    log_error "Insufficient memory"
-    log_error "Required: ${total_required_mb}MB, Available: ${available_mem_mb}MB"
+    echo "Insufficient memory"
+    echo "Required: ${total_required_mb}MB, Available: ${available_mem_mb}MB"
     return 1
   fi
 
-  log_info "Memory check passed (${available_mem_mb}MB available)"
+  echo "Memory check passed (${available_mem_mb}MB available)"
   return 0
 }
 
@@ -320,7 +313,7 @@ check_memory_requirements() {
 check_network_connectivity() {
   # Check basic internet connectivity
   if ! ping -c 1 8.8.8.8 &> /dev/null; then
-    log_error "No internet connectivity detected"
+    echo "No internet connectivity detected"
     return 1
   fi
 
@@ -336,41 +329,41 @@ check_network_connectivity() {
   done
 
   if [[ "$reachable" == "false" ]]; then
-    log_error "Unable to reach Dusk network nodes"
-    log_error "Check your network configuration and firewall settings"
+    echo "Unable to reach Dusk network nodes"
+    echo "Check your network configuration and firewall settings"
     return 1
   fi
 
-  log_info "Network connectivity check passed"
+  echo "Network connectivity check passed"
   return 0
 }
 
 # Check Docker installation
 check_docker_installation() {
   if ! command -v docker &> /dev/null; then
-    log_error "Docker is not installed"
+    echo "Docker is not installed"
     return 1
   fi
 
   if ! docker info &> /dev/null; then
-    log_error "Docker daemon is not running"
+    echo "Docker daemon is not running"
     return 1
   fi
 
-  log_info "Docker installation check passed"
+  echo "Docker installation check passed"
   return 0
 }
 
 # Check Docker Compose installation
 check_docker_compose_installation() {
   if command -v docker-compose &> /dev/null; then
-    log_info "Using docker-compose v$(docker-compose| awk '{print $4}')"
+    echo "Using docker-compose v$(docker-compose| awk '{print $4}')"
     return 0
   elif docker compose version &> /dev/null; then
-    log_info "Using docker compose v$(docker compose)"
+    echo "Using docker compose v$(docker compose)"
     return 0
   else
-    log_error "Docker Compose is not installed"
+    echo "Docker Compose is not installed"
     return 1
   fi
 }
@@ -379,17 +372,17 @@ check_docker_compose_installation() {
 check_installation_directory() {
   if [[ -d "$DUSK_BASE_DIR" ]]; then
     if [[ ! -w "$DUSK_BASE_DIR" ]]; then
-      log_error "Installation directory not writable: $DUSK_BASE_DIR"
+      echo "Installation directory not writable: $DUSK_BASE_DIR"
       return 1
     fi
   else
     if ! mkdir -p "$DUSK_BASE_DIR" &> /dev/null; then
-      log_error "Unable to create installation directory: $DUSK_BASE_DIR"
+      echo "Unable to create installation directory: $DUSK_BASE_DIR"
       return 1
     fi
   fi
 
-  log_info "Installation directory check passed ($DUSK_BASE_DIR)"
+  echo "Installation directory check passed ($DUSK_BASE_DIR)"
   return 0
 }
 
@@ -404,11 +397,11 @@ check_required_modules() {
   done
 
   if [[ "$missing_modules" == "true" ]]; then
-    log_error "Some required installation modules are missing"
+    echo "Some required installation modules are missing"
     return 1
   fi
 
-  log_info "Module check passed"
+  echo "Module check passed"
   return 0
 }
 
@@ -416,68 +409,68 @@ check_required_modules() {
 run_pre_installation_checks() {
   local validation_passed=true
 
-  log_section_start "Pre-Installation Checks"
+  echo "Pre-Installation Checks"
 
   # Validate network
   if ! validate_network; then
-    log_error "Network validation failed"
+    echo "Network validation failed"
     validation_passed=false
   fi
 
   # Check disk space
   if ! check_disk_space; then
-    log_error "Insufficient disk space"
+    echo "Insufficient disk space"
     validation_passed=false
   fi
 
   # Check memory requirements
   if ! check_memory_requirements; then
-    log_error "Insufficient memory"
+    echo "Insufficient memory"
     validation_passed=false
   fi
 
   # Check network connectivity
   if ! check_network_connectivity; then
-    log_error "Network connectivity issues detected"
+    echo "Network connectivity issues detected"
     validation_passed=false
   fi
 
   # Check Docker installation
   if ! check_docker_installation; then
-    log_error "Docker not properly installed"
+    echo "Docker not properly installed"
     validation_passed=false
   fi
 
   # Check Docker Compose installation
   if ! check_docker_compose_installation; then
-    log_error "Docker Compose not properly installed"
+    echo "Docker Compose not properly installed"
     validation_passed=false
   fi
 
   # Check if installation directory exists and is writable
   if ! check_installation_directory; then
-    log_error "Installation directory issues"
+    echo "Installation directory issues"
     validation_passed=false
   fi
 
   # Check if required modules exist
   if ! check_required_modules; then
-    log_error "Required installation modules are missing"
+    echo "Required installation modules are missing"
     validation_passed=false
   fi
 
   # Check if we're running as root (required for some operations)
   if [[ $EUID -ne 0 ]]; then
-    log_error "This script must be run as root"
+    echo "This script must be run as root"
     validation_passed=false
   fi
 
   if [[ "$validation_passed" == "false" ]]; then
-    log_section_end "Pre-Installation Checks" "FAILED"
+    echo "Pre-Installation Checks" "FAILED"
     return 1
   fi
 
-  log_section_end "Pre-Installation Checks" "PASSED"
+  echo "Pre-Installation Checks" "PASSED"
   return 0
 }
 
@@ -488,31 +481,31 @@ run_pre_installation_checks() {
 
 # Show installation summary before starting
 show_installation_summary() {
-  log_info "📋 Installation Summary:"
-  log_info "  - Nodes to install: $ADD_NODES"
-  log_info "  - Network: $NETWORK"
-  log_info "  - Base Directory: $DUSK_BASE_DIR"
-  log_info "  - Fast Sync: $([ "$FAST_SYNC_ENABLED" == "true" ] && echo "Enabled" || echo "Disabled")"
-  log_info "🔧 Starting installation process..."
+  echo "📋 Installation Summary:"
+  echo "  - Nodes to install: $ADD_NODES"
+  echo "  - Network: $NETWORK"
+  echo "  - Base Directory: $DUSK_BASE_DIR"
+  echo "  - Fast Sync: $([ "$FAST_SYNC_ENABLED" == "true" ] && echo "Enabled" || echo "Disabled")"
+  echo "🔧 Starting installation process..."
 }
 
 
 # Show completion message with enhanced information
 show_completion_message() {
   echo ""
-  log_info "Installation completed successfully!"
-  log_info ""
+  echo "Installation completed successfully!"
+  echo ""
 
   # Show installation summary
-  log_info "Installation Summary:"
-  log_info "  - Nodes installed: $ADD_NODES"
-  log_info "  - Network: $NETWORK"
-  log_info "  - Base Directory: $DUSK_BASE_DIR"
-  log_info "  - Fast Sync: $([ "$FAST_SYNC_ENABLED" == "true" ] && echo "Enabled" || echo "Disabled")"
-  log_info ""
+  echo "Installation Summary:"
+  echo "  - Nodes installed: $ADD_NODES"
+  echo "  - Network: $NETWORK"
+  echo "  - Base Directory: $DUSK_BASE_DIR"
+  echo "  - Fast Sync: $([ "$FAST_SYNC_ENABLED" == "true" ] && echo "Enabled" || echo "Disabled")"
+  echo ""
 
   # Show container status
-  log_info "📋 Container Status:"
+  echo "📋 Container Status:"
   local compose_cmd
   if command -v docker-compose >/dev/null 2>&1; then
     compose_cmd="docker-compose"
@@ -526,33 +519,33 @@ show_completion_message() {
     $compose_cmd ps
     echo ""
   else
-    log_warn "ℹ️ No docker-compose.yml found at $DUSK_BASE_DIR"
+    echon "ℹ️ No docker-compose.yml found at $DUSK_BASE_DIR"
   fi
 
   # Show node status
-  log_info "📋 Node Status:"
+  echo "📋 Node Status:"
   if [[ -d "$DUSK_BASE_DIR/nodes" ]]; then
     for node_dir in "$DUSK_BASE_DIR/nodes"/*; do
       if [[ -d "$node_dir" ]]; then
         node_name=$(basename "$node_dir")
-        log_info "  - $node_name: $(get_node_status "$node_dir")"
+        echo "  - $node_name: $(get_node_status "$node_dir")"
       fi
     done
   else
-    log_warn "ℹ️ No nodes directory found at $DUSK_BASE_DIR/nodes"
+    echon "ℹ️ No nodes directory found at $DUSK_BASE_DIR/nodes"
   fi
 
-  log_info ""
-  log_info "🔧 Useful Commands:"
-  log_info "  dusk-start              # Start all nodes"
-  log_info "  dusk-stop               # Stop all nodes"
-  log_info "  dusk-restart            # Restart all nodes"
-  log_info "  dusk-status             # Show node status"
-  log_info "  dusk-logs               # View logs"
-  log_info ""
-  log_info "  cd $DUSK_BASE_DIR && $compose_cmd ps    # View container status"
-  log_info "  cd $DUSK_BASE_DIR && $compose_cmd logs # View all logs"
-  log_info ""
+  echo ""
+  echo "🔧 Useful Commands:"
+  echo "  dusk-start              # Start all nodes"
+  echo "  dusk-stop               # Stop all nodes"
+  echo "  dusk-restart            # Restart all nodes"
+  echo "  dusk-status             # Show node status"
+  echo "  dusk-logs               # View logs"
+  echo ""
+  echo "  cd $DUSK_BASE_DIR && $compose_cmd ps    # View container status"
+  echo "  cd $DUSK_BASE_DIR && $compose_cmd logs # View all logs"
+  echo ""
 }
 
 # Get node status
@@ -570,29 +563,29 @@ get_node_status() {
 
 # Main installation function
 main_installation() {
-  log_section_start "Sozu Dusk Container"
+  echo "Sozu Dusk Container"
 
   # Display installation summary
   show_installation_summary
 
   # Pre-installation validation
-  log_info "🔍 Running pre-installation validation..."
+  echo "🔍 Running pre-installation validation..."
   if ! run_pre_installation_checks ; then
-    log_error "Pre-installation validation failed"
-    log_section_end "Sozu Dusk Container" "ERROR"
+    echo "Pre-installation validation failed"
+    echo "Sozu Dusk Container" "ERROR"
     exit 1
   fi
 
   # Execute each phase
   for phase in "${PHASES[@]}"; do
     if ! execute_module "$phase"; then
-      log_error "Installation failed at phase: $phase"
-      log_section_end "Sozu Dusk Container" "ERROR"
+      echo "Installation failed at phase: $phase"
+      echo "Sozu Dusk Container" "ERROR"
       exit 1
     fi
   done
 
-  log_section_end "Sozu Dusk Container" "SUCCESS"
+  echo "Sozu Dusk Container" "SUCCESS"
 
   }
 }
