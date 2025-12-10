@@ -169,9 +169,8 @@ execute_module() {
   fi
 
   # Skip fast-sync if not enabled
-  if [[ "$module_name" == "03-fast-sync" && "$FAST_SYNC_ENABLED" != "true" ]]; then
-    log_info "ℹ️ Skipping fast-sync (not enabled)"
-    log_section_end "Module: $module_name" "SKIPPED"
+  if [["$FAST_SYNC_ENABLED" != "true" ]]; then
+    log_section_end"ℹ️ Skipping fast-sync (not enabled)"
     return 0
   fi
 

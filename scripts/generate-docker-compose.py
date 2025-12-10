@@ -4,7 +4,7 @@ Generate docker-compose.yml for multiple Dusk nodes
 Automatically assigns unique ports to each node and sets resource limits
 
 Usage:
-./scripts/generate-docker-compose.py --nodes 5 --network mainnet --output docker-compose.yml
+./scripts/generate-docker-compose.py --nodes 1 --network mainnet --output docker-compose.yml
 
 Configuration:
 The script uses a configuration file (config/docker-compose-config.yml) for default values.
@@ -75,8 +75,8 @@ def generate_compose(num_nodes, config, network="mainnet", feature="default"):
 
     for i in range(1, num_nodes + 1):
         node_name = f"{config.get('volume_prefix', 'dusk-node')}-{i}"
-        host_p2p = config['base_p2p_port'] + i
-        host_rpc = config['base_rpc_port'] + i
+        host_p2p = config.get('base_p2p_port', 18080) + i
+        host_rpc = config.get('base_rpc_port', 19000) + i
 
         service = {
             'build': {

@@ -1,4 +1,5 @@
-.*
+.DS_Store
+
 
 *.env
 docker-compose.yml
