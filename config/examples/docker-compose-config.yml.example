@@ -1,5 +1,7 @@
 ---
 base_image: "ubuntu:24.04"
+image_name: "dusk-node:1"
+build_context: "/root/node-installer-docker"
 dockerfile_path: "config/Dockerfile.runtime"
 volume_prefix: "dusk-node"
 base_p2p_port: 18080
@@ -14,6 +16,4 @@ dusk_sysctls:
   - "net.core.wmem_max=50000000"
 cpu_limit: 2.0
 memory_limit: 2G
-storage_limit_rusk: 19G # stores state
-storage_limit_data: 1G # stores keys, wallet config, etc.
 docker_network_name: "dusk-net"

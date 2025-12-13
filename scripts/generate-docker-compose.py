@@ -66,6 +66,8 @@ def generate_compose(num_nodes, config, network="mainnet", feature="default"):
     cpu_limit = config.get('cpu_limit', 2.0)
     memory_limit = config.get('memory_limit', '2G')
     docker_network_name = config.get('docker_network_name', 'dusk-net')
+    image_name = config.get('image_name', 'dusk-node:1')
+    context = config.get("build_context", "/root/node-installer-docker")
 
     compose = {
         'version': '3.8',
@@ -85,8 +87,9 @@ def generate_compose(num_nodes, config, network="mainnet", feature="default"):
         host_rpc = config.get('base_rpc_port', 19000) + i
 
         service = {
+            'image': image_name,
             'build': {
-                'context': '/root/node-installer-docker',
+                'context': context,
                 'dockerfile': config.get('dockerfile_path', 'config/Dockerfile.runtime'),
                 'args': {
                     'BASE_IMAGE': config.get('base_image','ubuntu:24.04')
@@ -122,17 +125,9 @@ def generate_compose(num_nodes, config, network="mainnet", feature="default"):
 
         compose['services'][node_name] = service
 
-        compose['volumes'][f"{node_name}-data"] = {
-            'driver_opts': {
-                    'size': config.get('storage_limit_data', '1G')
-                }
-        }
+        compose['volumes'][f"{node_name}-data"] = {}
 
-        compose['volumes'][f"{node_name}-rusk"] = {
-            'driver_opts': {
-                    'size': config.get('storage_limit_rusk', '19G')
-                }
-        }
+        compose['volumes'][f"{node_name}-rusk"] = {}
 
     return compose
 
@@ -146,12 +141,15 @@ def main():
     parser.add_argument('--feature', choices=['default', 'archive'], default='default', help='Node feature')
     parser.add_argument('--base-p2p', type=int, help='Base port for P2P')
     parser.add_argument('--base-rpc', type=int, help='Base port for RPC')
+    parser.add_argument('--image', type=str, help='Docker image name/tag to use (e.g., dusk-node:1)')
     parser.add_argument('--cpu-limit', type=float, help='CPU limit per node')
     parser.add_argument('--memory-limit', type=str, help='Memory limit per node (e.g., 4G)')
     parser.add_argument('--storage-limit-rusk', type=str, help='Storage limit for rusk data per node')
     parser.add_argument('--storage-limit-data', type=str, help='Storage limit for config data per node')
     parser.add_argument('--output', default='docker-compose.yml', help='Output file')
     parser.add_argument('--config', default='config/docker-compose-config.yml', help='Configuration file path')
+    
+
 
     args = parser.parse_args()
 
@@ -167,6 +165,8 @@ def main():
         config['base_p2p_port'] = args.base_p2p
     if args.base_rpc is not None:
         config['base_rpc_port'] = args.base_rpc
+    if args.image is not None:
+        config['image_name'] = args.image
     if args.cpu_limit is not None:
         config['cpu_limit'] = args.cpu_limit
     if args.memory_limit is not None:
@@ -175,6 +175,7 @@ def main():
         config['storage_limit_rusk'] = args.storage_limit_rusk
     if args.storage_limit_data is not None:
         config['storage_limit_data'] = args.storage_limit_data
+
 
     logger.info(f"Generating docker-compose.yml for {args.nodes} nodes ({args.network}, {args.feature})...")
 
@@ -194,8 +195,6 @@ def main():
         logger.info(f"  RPC ports: {config['base_rpc_port'] + 1} - {config['base_rpc_port'] + args.nodes}")
         logger.info(f"  CPU limit: {config.get('cpu_limit', 'Not specified')}")
         logger.info(f"  Memory limit: {config.get('memory_limit', 'Not specified')}")
-        logger.info(f"  Rusk Storage limit: {config.get('storage_limit_rusk', 'Not specified')}")
-        logger.info(f"  Data Storage limit: {config.get('storage_limit_data', 'Not specified')}")
     except IOError as e:
         logger.error(f"Error writing to file {args.output}: {e}")
         sys.exit(1)

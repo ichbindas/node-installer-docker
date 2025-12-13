@@ -21,6 +21,7 @@ NC='\033[0m' # No Color
 BASE_DIR=${DUSK_BASE_DIR:-/opt/dusk}
 DOCKER_COMPOSE_FILE="$BASE_DIR/docker-compose.yml"
 DOCKER_BUILDKIT=${DOCKER_BUILDKIT:0}
+COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-dusk-}"
 
 # =============================================================================
 # DOCKER COMPOSE MANAGEMENT
@@ -80,13 +81,14 @@ execute_docker_compose() {
     fi
 
     echo "🔨 Building images (verbose)..."
-    if ! $compose_cmd -f "$DOCKER_COMPOSE_FILE" build --progress=plain; then # distinguishing between compose_cmd is not required
+    if ! $compose_cmd -p "$COMPOSE_PROJECT_NAME" -f "$DOCKER_COMPOSE_FILE" build --progress=plain; then
         echo "❌ Image build failed"
         return 1
     fi
 
     echo "🚀 Starting containers..."
-    if ! $compose_cmd -f "$DOCKER_COMPOSE_FILE" up -d; then
+    if ! $compose_cmd -p "$COMPOSE_PROJECT_NAME" -f "$DOCKER_COMPOSE_FILE" up -d; then
+
         echo "❌ Failed to start containers"
         return 1
     fi

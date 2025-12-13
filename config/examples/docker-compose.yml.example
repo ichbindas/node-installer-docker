@@ -3,7 +3,7 @@ services:
   dusk-node-1:
     build:
       context: /root/node-installer-docker
-      dockerfile: config/Dockerfile.runtime
+      dockerfile: /root/node-installer-docker/config/Dockerfile.runtime
       args:
         BASE_IMAGE: ubuntu:24.04
     container_name: dusk-node-1
@@ -36,8 +36,8 @@ services:
     - dusk-net
   dusk-node-2:
     build:
-      context: .
-      dockerfile: config/Dockerfile.runtime
+      context: /root/node-installer-docker
+      dockerfile: /root/node-installer-docker/config/Dockerfile.runtime
       args:
         BASE_IMAGE: ubuntu:24.04
     container_name: dusk-node-2
@@ -63,17 +63,9 @@ services:
     - dusk-net
 volumes:
   dusk-node-1-data:
-    driver_opts:
-      size: 1G
   dusk-node-1-rusk:
-    driver_opts:
-      size: 19G
   dusk-node-2-data:
-    driver_opts:
-      size: 1G
   dusk-node-2-rusk:
-    driver_opts:
-      size: 19G
 networks:
   dusk-net:
     name: dusk-net
