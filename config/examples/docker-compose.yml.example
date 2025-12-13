@@ -2,7 +2,7 @@ version: '3.8'
 services:
   dusk-node-1:
     build:
-      context: .
+      context: /root/node-installer-docker
       dockerfile: config/Dockerfile.runtime
       args:
         BASE_IMAGE: ubuntu:24.04

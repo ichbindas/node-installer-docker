@@ -86,7 +86,7 @@ def generate_compose(num_nodes, config, network="mainnet", feature="default"):
 
         service = {
             'build': {
-                'context': '.',
+                'context': '/root/node-installer-docker',
                 'dockerfile': config.get('dockerfile_path', 'config/Dockerfile.runtime'),
                 'args': {
                     'BASE_IMAGE': config.get('base_image','ubuntu:24.04')
