@@ -109,8 +109,6 @@ Usage: $0 [OPTIONS]
 Options:
 --add-nodes N      Add N containers (default: 1)
 --fast-sync        Enable fast-sync during installation
---list-containers  List existing containers
---skip-validation  Skip pre-installation validation
 --help, -h         Show this help message
 
 Installation Phases:
@@ -122,9 +120,7 @@ Examples:
 sudo $0                    # Normal installation (1 container)
 sudo $0 --add-nodes 3       # Install with 3 containers
 sudo $0 --fast-sync         # Install with fast-sync
-sudo $0 --skip-validation  # Skip pre-installation checks (use with caution)
 sudo $0 --add-nodes 2       # Add 2 more containers to existing setup
-sudo $0 --list-containers   # List existing containers
 EOF
 }
 
@@ -161,11 +157,12 @@ execute_module() {
     return 1
   fi
 
+########## this needs to be updated, fast-sync is currently not implemented
   # Skip fast-sync if not enabled
-  if [["$FAST_SYNC_ENABLED" != "true" ]]; then
-    echo"ℹ️ Skipping fast-sync (not enabled)"
-    return 0
-  fi
+  #if [ "$FAST_SYNC_ENABLED" != "true" ]; then
+  #  echo "ℹ️ Skipping fast-sync (not enabled)"
+  #  return 0
+  #fi
 
   start_time=$(date +%s)
   echo "🚀 Starting module: $module_name"
@@ -182,27 +179,33 @@ execute_module() {
     duration=$((end_time - start_time))
     echo "Module $module_name failed after $duration seconds"
     echo "Module: $module_name" "ERROR"
+    rollback_installation "$module_name"
+    echo "Installation rollback complete"
     return 1
   fi
   
 }
 
+# current implementation removes all nodes.... 
 # Enhanced rollback function
 rollback_installation() {
   local failed_module=$1
   echo "🔄 Rolling back installation due to failure in module: $failed_module"
+  local base_dir="${DUSK_BASE_DIR:-/opt/dusk}"
+  local compose_file="$base_dir/docker-compose.yml"
+
 
   # Stop Docker containers
-  if [[ -f "/opt/dusk/docker-compose.yml" ]]; then
+  if [[ -f "$compose_file" ]]; then
     echo "Stopping Docker containers"
-    cd /opt/dusk 2>/dev/null || true
+    cd "$base_dir" 2>/dev/null || true
 
     if command -v docker-compose >/dev/null 2>&1; then
-      echo "🔧 Running: docker-compose down"
-      docker-compose down 2>/dev/null || true
+      echo "🔧 Running: docker-compose -f $compose_file down"
+      docker-compose -f "$compose_file" down 2>/dev/null || true
     elif docker compose version >/dev/null 2>&1; then
       echo "🔧 Running: docker compose down"
-      docker compose down 2>/dev/null || true
+      docker compose -f "$compose_file" down  2>/dev/null || true
     fi
   fi
 
@@ -227,6 +230,8 @@ list_containers() {
   local compose_cmd
   local filter_status=""
   local filter_name="dusk-node"
+  local base_dir="${DUSK_BASE_DIR:-/opt/dusk}"
+  local compose_file="$base_dir/docker-compose.yml"
 
   # Determine docker-compose command
   if command -v docker-compose >/dev/null 2>&1; then
@@ -239,14 +244,14 @@ list_containers() {
   fi
 
   # Show Docker Compose services if available
-  if [[ -f "/opt/dusk/docker-compose.yml" ]]; then
-    cd /opt/dusk 2>/dev/null || return 1
+  if [[ -f "$compose_file" ]]; then
+    cd "$base_dir" 2>/dev/null || return 1
     echo ""
     echo "Docker Compose Services:"
-    $compose_cmd -f /opt/dusk/docker-compose.yml ps
+    $compose_cmd -f "$compose_file" ps
     echo ""
   else
-    echo "ℹ️ No docker-compose.yml found"
+    echo "ℹ️ No docker-compose.yml found at $compose_file"
   fi
 
   # Show Docker containers with enhanced formatting
@@ -269,12 +274,15 @@ validate_network() {
   return 0
 }
 
+########## this also needs to be changed
+## node_space_gb is never set (at least not in what you pasted). This will evaluate to 0 or error depending on shell settings, making the check meaningless.
+
 # Check disk space requirements
 check_disk_space() {
-  local required_space_gb=50  # Base requirement
+  local required_space_gb=20  # Base requirement
 
   # Calculate total required space
-  local total_required_gb=$((node_space_gb * ADD_NODES))
+  local total_required_gb=$((required_space_gb * ADD_NODES))
 
   # Get available space in GB
   local available_space_gb=$(df -BG / | awk 'NR==2 {print $4}' | tr -d 'G')
@@ -357,10 +365,10 @@ check_docker_installation() {
 # Check Docker Compose installation
 check_docker_compose_installation() {
   if command -v docker-compose &> /dev/null; then
-    echo "Using docker-compose v$(docker-compose| awk '{print $4}')"
+    echo "Using docker-compose v$(docker-compose version)"
     return 0
   elif docker compose version &> /dev/null; then
-    echo "Using docker compose v$(docker compose)"
+    echo "Using docker compose v$(docker compose version)"
     return 0
   else
     echo "Docker Compose is not installed"
@@ -519,7 +527,7 @@ show_completion_message() {
     $compose_cmd ps
     echo ""
   else
-    echon "ℹ️ No docker-compose.yml found at $DUSK_BASE_DIR"
+    echo "ℹ️ No docker-compose.yml found at $DUSK_BASE_DIR"
   fi
 
   # Show node status
@@ -532,7 +540,7 @@ show_completion_message() {
       fi
     done
   else
-    echon "ℹ️ No nodes directory found at $DUSK_BASE_DIR/nodes"
+    echo "ℹ️ No nodes directory found at $DUSK_BASE_DIR/nodes"
   fi
 
   echo ""
@@ -548,22 +556,79 @@ show_completion_message() {
   echo ""
 }
 
+
+#
+#get_node_status() can’t work as written (broken logic)
+
+#Problems:
+#	•	It relies on compose_cmd, but compose_cmd is a local variable inside show_completion_message(), so it’s not available in get_node_status().
+#	•	It treats container_name=$(basename "$node_dir") (like node-1) as a compose service name. Your compose service is dusk-node-1, so it won’t match.
+
+#If you want this feature, you need to:
+#	•	determine compose command inside get_node_status() too (or make it global), and
+#	•	map node-1 → dusk-node-1.
+#"""
+
+
 # Get node status
 get_node_status() {
-  local node_dir=$1
+  local node_dir="$1"
+  local base_dir="${DUSK_BASE_DIR:-/opt/dusk}"
+  local compose_file="$base_dir/docker-compose.yml"
 
-  if [[ -n "$compose_cmd" ]]; then
-    local container_name=$(basename "$node_dir")
-    local container_status=$($compose_cmd ps -q "$container_name" | xargs $compose_cmd inspect -f '{{.State.Status}}' 2>/dev/null)
-    if [[ -n "$container_status" ]]; then
-      echo "$container_status"
-      return 0
-    fi
-  fi echo "Unknown"
+  # Determine docker compose command
+  local compose_cmd=""
+  if command -v docker-compose >/dev/null 2>&1; then
+    compose_cmd="docker-compose"
+  elif docker compose version >/dev/null 2>&1; then
+    compose_cmd="docker compose"
+  else
+    echo "unknown (no compose)"
+    return 0
+  fi
+
+  # Need compose file
+  if [[ ! -f "$compose_file" ]]; then
+    echo "unknown (no compose file)"
+    return 0
+  fi
+
+  # node_dir basename: node-1, node-2, ...
+  local node_name
+  node_name="$(basename "$node_dir")"
+
+  # Extract numeric suffix: "1" from "node-1"
+  local node_num="${node_name#node-}"
+  if [[ -z "$node_num" || ! "$node_num" =~ ^[0-9]+$ ]]; then
+    echo "unknown"
+    return 0
+  fi
+
+  # Compose service name: dusk-node-1, dusk-node-2, ...
+  local service="dusk-node-$node_num"
+
+  # Get container id for that service
+  local cid
+  cid=$($compose_cmd -f "$compose_file" ps -q "$service" 2>/dev/null)
+
+  if [[ -z "$cid" ]]; then
+    echo "not created"
+    return 0
+  fi
+
+  # Get state via docker inspect (more reliable than parsing ps output)
+  local status
+  status="$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$cid" 2>/dev/null)"
+  if [[ -z "$status" ]]; then
+    echo "unknown"
+  else
+    echo "$status"   # running / exited / restarting / etc.
+  fi
+}
 
 # Main installation function
 main_installation() {
-  echo "Sozu Dusk Container"
+  echo "Dusk Docker Container"
 
   # Display installation summary
   show_installation_summary
@@ -572,7 +637,7 @@ main_installation() {
   echo "🔍 Running pre-installation validation..."
   if ! run_pre_installation_checks ; then
     echo "Pre-installation validation failed"
-    echo "Sozu Dusk Container" "ERROR"
+    echo "Dusk Docker Container" "ERROR"
     exit 1
   fi
 
@@ -580,15 +645,14 @@ main_installation() {
   for phase in "${PHASES[@]}"; do
     if ! execute_module "$phase"; then
       echo "Installation failed at phase: $phase"
-      echo "Sozu Dusk Container" "ERROR"
+      echo "Dusk Docker Container" "ERROR"
       exit 1
     fi
   done
 
-  echo "Sozu Dusk Container" "SUCCESS"
+  echo "Dusk Docker Container" "SUCCESS"
 
   }
-}
 
 
 # =============================================================================

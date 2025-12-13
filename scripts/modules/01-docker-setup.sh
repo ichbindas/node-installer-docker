@@ -76,14 +76,6 @@ execute_docker_compose() {
         return 1
     fi
 
-    # Pull the latest images
-    echo "🔄 Pulling latest Docker images..."
-    if ! $compose_cmd pull; then
-        echo "❌ Failed to pull Docker images"
-        echo "Docker Compose Execution" "ERROR"
-        return 1
-    fi
-
     # Build and start the containers
     echo "🚀 Starting Docker containers..."
     if ! $compose_cmd up -d --build; then
