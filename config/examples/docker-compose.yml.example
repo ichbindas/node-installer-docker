@@ -1,7 +1,4 @@
 version: '3.8'
-# Docker Compose configuration for multiple Dusk nodes
-# This is a reference template - for production use, generate with generate-docker-compose.py
-
 services:
   dusk-node-1:
     build:
@@ -22,7 +19,7 @@ services:
     - DUSK_FEATURE=default
     - DUSK_USER=dusk
     - RUST_LOG=info
-    sysctls:
+    sysctls: &id001
     - net.core.rmem_max=50000000
     - net.core.rmem_default=20000000
     - net.ipv4.udp_mem=262144 327680 393216
@@ -33,48 +30,51 @@ services:
     deploy:
       resources:
         limits:
-          cpus: 2.0
+          cpus: 1.0
           memory: 2G
-  dusk-node-1:
+    networks:
+    - dusk-net
+  dusk-node-2:
     build:
       context: .
       dockerfile: config/Dockerfile.runtime
       args:
         BASE_IMAGE: ubuntu:24.04
-    container_name: dusk-node-1
+    container_name: dusk-node-2
     restart: unless-stopped
     ports:
-    - 18081:8080
-    - 19001:9000
+    - 18082:8080
+    - 19002:9000
     volumes:
-    - dusk-node-1-data:/home/dusk/.dusk
-    - dusk-node-1-rusk:/opt/dusk/rusk
+    - dusk-node-2-data:/home/dusk/.dusk
+    - dusk-node-2-rusk:/opt/dusk/rusk
     environment:
     - DUSK_NETWORK=mainnet
     - DUSK_FEATURE=default
     - DUSK_USER=dusk
     - RUST_LOG=info
-    sysctls:
-    - net.core.rmem_max=50000000
-    - net.core.rmem_default=20000000
-    - net.ipv4.udp_mem=262144 327680 393216
-    - net.ipv4.udp_rmem_min=4096
-    - net.core.netdev_max_backlog=2000
-    - net.core.wmem_default=20000000
-    - net.core.wmem_max=50000000
+    sysctls: *id001
     deploy:
       resources:
         limits:
-          cpus: 2.0
+          cpus: 1.0
           memory: 2G
+    networks:
+    - dusk-net
 volumes:
   dusk-node-1-data:
     driver_opts:
-      size: 20G
-  dusk-node-1-rusk: null
-
-volumes:
-  dusk-node-1-data:
+      size: 1G
   dusk-node-1-rusk:
+    driver_opts:
+      size: 19G
   dusk-node-2-data:
+    driver_opts:
+      size: 1G
   dusk-node-2-rusk:
+    driver_opts:
+      size: 19G
+networks:
+  dusk-net:
+    name: dusk-net
+    driver: bridge

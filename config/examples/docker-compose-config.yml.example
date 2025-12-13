@@ -12,6 +12,8 @@ dusk_sysctls:
   - "net.core.netdev_max_backlog=2000"
   - "net.core.wmem_default=20000000"
   - "net.core.wmem_max=50000000"
-cpu_limit: 1.0
+cpu_limit: 2.0
 memory_limit: 2G
-storage_limit: 20G
+storage_limit_rusk: 19G # stores state
+storage_limit_data: 1G # stores keys, wallet config, etc.
+docker_network_name: "dusk-net"

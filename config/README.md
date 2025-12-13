@@ -23,3 +23,18 @@ Copy `cp` example `.env` files into `/config` and edit them.
 ## Dockerfile (config/)
 
 [Dockerfile.runtime](../config/Dockerfile.runtime): Template for a Dockerfile used to build a runtime environment for a Python application. Includes instructions to install dependencies, copy application files, and configure the runtime environment.
+
+# Process
+Entrypoint: `scripts/main_installer.sh` 
+
+-> `scripts/modules/01-docker-setup.sh`
+
+-> `docker-compose.yml`
+
+-> `config/Dockerfile.runtime`
+
+-> `config/src/docker-entrpoint.sh`
+
+-> `config/src/docker-installer-wrapper.sh` modifies `node-installer/node-installer.sh` to disable (?) systemctl and sysctl and runs inside the container 
+
+-> `tmp/node-installer-docker.sh` -> Fertig

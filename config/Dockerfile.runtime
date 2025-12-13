@@ -9,29 +9,39 @@ ENV DUSK_USER=dusk \
     DUSK_NETWORK=mainnet
 
 # Install runtime dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN echo "Running Dockerfile.runtime" \
+    && echo "updating dependencies" \
+    && apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     openssl \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && echo "updated dependencies"
 
 # Create dusk user and group
-RUN groupadd --system dusk && \
-    useradd --system --create-home --shell /usr/sbin/nologin --gid dusk dusk
+RUN echo "Creating dusk user and group" \
+    && groupadd --system dusk \
+    && useradd --system --create-home --shell /usr/sbin/nologin --gid dusk dusk \
+    && echo "Creating dusk user and group"
 
-# Create required directories
-RUN mkdir -p /opt/dusk/bin \
-    /opt/dusk/conf \
-    /opt/dusk/rusk \
-    /opt/dusk/services \
-    && chown -R dusk:dusk /opt/dusk
+# can be removed, since the node-installer.sh should do this
+#RUN echo ">>>> Creating necessary directories" \
+#    && mkdir -p /opt/dusk/bin \
+#    /opt/dusk/conf \
+#    /opt/dusk/rusk \
+#    /opt/dusk/services \
+#    && chown -R dusk:dusk /opt/dusk \
+#    && echo ">>>> Created the following directories in opt/dusk: conf/, rusk/, services/"
 
 # Copy installer scripts
+RUN echo ">>>> Copying node-installer.sh and docker-installer-wrapper.sh to /tmp/ on container"
 COPY node-installer/node-installer.sh /tmp/
 COPY config/src/docker-install-wrapper.sh /tmp/
 RUN chmod +x /tmp/node-installer.sh /tmp/docker-install-wrapper.sh
+RUN echo ">>>> DONE - Copying node-installer.sh and docker-installer-wrapper.sh to /tmp/ on container"
 
 # Copy entrypoint
+RUN echo ">>>> Copying docker-entrypoint.sh to /tmp/ on container"
 COPY config/src/docker-entrypoint.sh /
 RUN chmod +x /docker-entrypoint.sh
 

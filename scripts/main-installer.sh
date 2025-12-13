@@ -236,6 +236,8 @@ list_containers() {
   # Determine docker-compose command
   if command -v docker-compose >/dev/null 2>&1; then
     compose_cmd="docker-compose"
+    export DOCKER_BUILDKIT=0
+    echo "ℹ️ docker-compose v1 detected → using legacy (verbose) build output"
   elif docker compose version >/dev/null 2>&1; then
     compose_cmd="docker compose"
   else
@@ -365,10 +367,10 @@ check_docker_installation() {
 # Check Docker Compose installation
 check_docker_compose_installation() {
   if command -v docker-compose &> /dev/null; then
-    echo "Using docker-compose v$(docker-compose version)"
+    echo "Using docker-compose $(docker-compose version)"
     return 0
   elif docker compose version &> /dev/null; then
-    echo "Using docker compose v$(docker compose version)"
+    echo "Using docker compose $(docker compose version)"
     return 0
   else
     echo "Docker Compose is not installed"

@@ -17,7 +17,7 @@ sed \
   -e '/systemctl enable rusk/d' \
   -e '/systemctl daemon-reload/d' \
   -e 's/sysctl -p/sysctl -p || true  # Docker sysctls handled via docker-compose/' \
-  "$INSTALLER_SCRIPT" > /tmp/node-installer-docker.sh
+  "$INSTALLER_SCRIPT" > /tmp/node-installer-docker.sh # rename script so that the wrapped intention is more visible
 
 chmod +x /tmp/node-installer-docker.sh
 
